@@ -1,5 +1,6 @@
 ---
 title: "Reproducible Research: Peer Assessment 1"
+author: Nwokedi Idika
 output: 
   html_document:
     keep_md: true
@@ -7,16 +8,46 @@ output:
 
 
 ## Loading and preprocessing the data
-
+```{r}
+library(dplyr)
+df <- read.csv('activity.csv')
+df_clean <- df[complete.cases(df),]
+```
 
 
 ## What is mean total number of steps taken per day?
 
+* Histogram of total steps taken per day
 
+```{r}
+total_per_day <- group_by(df_clean, date) %>% summarize(total = sum(steps))
+hist(total_per_day$total, main = "Histogram of Total Steps Taken \nPer Day", xlab = "Number of Steps Taken in a Day")
+```
+
+* The mean number of steps taken per day is given below
+
+```{r}
+mean(total_per_day$total)
+```
+
+* The median number of steps taken per day is given below 
+
+```{r}
+median(total_per_day$total)
+```
 
 ## What is the average daily activity pattern?
 
+* Time series 
+```{r}
+avg_interval <- group_by(df_clean, interval) %>% summarize(avg = mean(steps))
+plot(avg_interval$interval, avg_interval$avg, type="l", ylab="Avg. Number of Steps", xlab = "5-Minute Intervals", main = "Average Number of Steps Over Time")
+```
 
+* The interval with the largest number of steps 
+```{r}
+arrange(avg_interval, desc(avg))[1,1]
+```
 
 ## Imputing missing values
 
