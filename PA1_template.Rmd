@@ -51,6 +51,62 @@ arrange(avg_interval, desc(avg))[1,1]
 
 ## Imputing missing values
 
+* The number of missing values in the dataset is given below
+```{r}
+nrow(df) - nrow(df_clean)
+```
 
+* We'll use the average number of steps for an interval to fill in missing values 
+
+```{r}
+no_vals <- df[is.na(df$steps),]
+for(i in 1:nrow(no_vals)){
+  no_vals[i,1] <- avg_interval[avg_interval[,1] == no_vals[i,3],2]
+}
+
+df_filled <- rbind(df_clean, no_vals)
+```
+
+* Histogram of new dataset
+```{r}
+total_per_day_filled <- group_by(df_filled,date) %>% summarize(total=sum(steps))
+hist(total_per_day_filled$total, main = "Histogram of Total Steps Taken \nPer Day", xlab = "Number of Steps Taken in a Day")
+```
+
+* Mean of the dataset
+
+```{r}
+mean(total_per_day_filled$total)
+```
+
+* Median of the dataset
+
+```{r}
+median(total_per_day_filled$total)
+```
+
+The mean and median are now the same when previously they differed some. 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+```{r}
+mk_categories <- function(days){
+  r <- NULL
+  for(day in days){
+    if("Saturday" %in% day || "Sunday" %in% day){
+      r <- c(r, "Weekend")
+    }
+    else{
+      r <- c(r, "Weekday")
+    }
+  }
+  r
+}
+w <- weekdays(as.Date(df_filled$date))
+w <- mk_categories(w)
+df_new <- data.frame(df_filled, tow=as.factor(w))
+df_wk <- group_by(df_new, tow, interval) %>% summarize(avg=mean(steps))
+
+library(ggplot2)
+qplot(interval, avg, data=df_wk, facets= tow ~ ., geom = "line", ylab = "Avg. Steps Taken", xlab = "5-minute Intervals")
+```
